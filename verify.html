@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm the number I have in mind.</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.0/spark-md5.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        function md5(input) {
+            const hash = new SparkMD5.ArrayBuffer();
+            const encoder = new TextEncoder();
+            hash.append(encoder.encode(input));
+            return hash.end();
+        }
+
+        async function verify() {
+            const userInputNumber = document.getElementById('inputNumber').value;
+            const userInputCombination = document.getElementById('inputCombination').value;
+            const userInputHash = document.getElementById('inputHash').value;
+
+            if (userInputNumber === '' || userInputCombination === '' || userInputHash === '') {
+                document.getElementById('result').innerText = 'Please fill in all fields';
+                return;
+            }
+
+            let calculatedHash = userInputNumber;
+
+            for (let i = 0; i < userInputCombination.length; i++) {
+                const hashAlgorithm = getHashFunction(userInputCombination[i]);
+
+                try {
+                    if (hashAlgorithm === 'md5') {
+                        calculatedHash = md5(calculatedHash);
+                    }
+                    else {
+                        const encoder = new TextEncoder();
+                        const data = encoder.encode(calculatedHash);
+
+                        const hashBuffer = await crypto.subtle.digest(hashAlgorithm, data);
+                        const hashArray = Array.from(new Uint8Array(hashBuffer));
+                        calculatedHash = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+
+                    }
+                } catch (error) {
+                    document.getElementById('result').innerText = `You entered the wrong key, or your browser does not support it.`;
+                    calculatedHash = null;
+                    return;
+                }
+            }
+
+            if (calculatedHash === null) {
+                return;
+            } else if (calculatedHash === userInputHash) {
+                document.getElementById('result').innerText = 'Verification Success. The number I had in mind was ' + userInputNumber + '.';
+            } else {
+                document.getElementById('result').innerText = 'Verification Error. The number I had in mind was not ' + userInputNumber + '. That number flew away.';
+            }
+        }
+
+        function getHashFunction(letter) {
+            switch (letter) {
+                case 'a':
+                    return 'md5';
+                case 'b':
+                    return 'sha-1';
+                case 'c':
+                    return 'sha-256';
+                case 'd':
+                    return 'sha-512';
+                default:
+                    return '';
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Verify the number I have in mind.</h1>
+    <label for="inputNumber">Enter the original number:</label>
+    <input type="number" id="inputNumber" required><br>
+
+    <label for="inputHash">Enter the original hash:</label>
+    <input type="text" id="inputHash" required><br>
+
+    <label for="inputCombination">Enter the key (combination of a-d): </label>
+    <input type="text" id="inputCombination" pattern="[a-d]+" required><br>
+
+    <button onclick="verify()">Verify</button>
+
+    <h2>Verification Result:</h2>
+    <p id="result"></p>
+
+    <br />
+    <br />
+    <br />
+    <a href="./index.html" style="float: right; font-size: 1.2rem;">I want to keep a number in mind.</a>
+</body>
+
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I kept a number in my mind.</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.0/spark-md5.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        function md5(input) {
+            const hash = new SparkMD5.ArrayBuffer();
+            const encoder = new TextEncoder();
+            hash.append(encoder.encode(input));
+            return hash.end();
+        }
+
+        async function encrypt(input) {
+            let result = "";
+            let hashFunctions = "";
+            let hashedString = input;
+            const hashAlgorithms = ['md5', 'sha-1', 'sha-256', 'sha-512'];
+
+            for (let i = 0; i < 100; i++) {
+                const randomAlgorithmIndex = Math.floor(Math.random() * hashAlgorithms.length);
+                const hashAlgorithm = hashAlgorithms[randomAlgorithmIndex];
+
+                try {
+                    if (hashAlgorithm === 'md5') {
+                        hashedString = await md5(hashedString);
+                    } else {
+                        const encoder = new TextEncoder();
+                        const data = encoder.encode(hashedString);
+
+                        const hashBuffer = await crypto.subtle.digest(hashAlgorithm, data);
+                        const hashArray = Array.from(new Uint8Array(hashBuffer));
+                        hashedString = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+                    }
+
+                    hashFunctions += getHashFunctionLetter(hashAlgorithm);
+                } catch (error) {
+                    console.error(`Error using ${hashAlgorithm} algorithm: ${error.message}`);
+                }
+            }
+
+            document.getElementById('result').innerText = hashedString;
+            document.getElementById('hashFunctions').innerText = hashFunctions;
+        }
+
+        function getHashFunctionLetter(algorithm) {
+            switch (algorithm) {
+                case 'md5':
+                    return 'a';
+                case 'sha-1':
+                    return 'b';
+                case 'sha-256':
+                    return 'c';
+                case 'sha-512':
+                    return 'd';
+                default:
+                    return '';
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <h1>I kept a number in my mind.</h1>
+
+    <form onsubmit="event.preventDefault(); encrypt(document.getElementById('inputNumber').value)">
+        <label for="inputNumber">Enter a natural number:</label>
+        <input type="number" id="inputNumber" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h2>Hash (Share this when participation begins):</h2>
+    <p id="result"></p>
+
+    <h2>Key (Share this when the participation is completed):</h2>
+    <p id="hashFunctions"></p>
+
+    <br />
+    <br />
+    <br />
+    <a href="./verify.html" style="float: right; font-size: 1.2rem;">Verify a number.</a>
+</body>
+
+</html>
