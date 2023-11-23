@@ -1,4 +1,4 @@
-# i-kept-a-number-in-my-mind
+# I kept a number in my mind.
 
 Index sayfasında, uygulama, girdiğiniz sayıyı 100 kez art arda rastgele olacak şekilde aşağıdaki algoritmalar ile şifreler.
 
